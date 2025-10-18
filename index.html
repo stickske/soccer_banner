@@ -19,12 +19,12 @@ html, body { margin:0; padding:0; font-family:sans-serif; }
   display:flex;
   justify-content:flex-start;
   align-items:flex-start;
-  gap:150px; /* space between teams */
+  gap:50px; /* space between teams */
 }
 .team {
   display:flex;
   align-items:flex-start;
-  gap:0.7em;
+  gap: 2em;
   padding:0.5em;
   border-radius:10px;
 }
@@ -85,6 +85,13 @@ input, button { font-size:1em; padding:0.3em; margin:0.2em; }
   margin: 0;
 }
 
+#matchTimer{
+    color: rgb(255, 255, 255);
+    background-color: black;
+    padding: 10px;
+    border-radius:10px;
+}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
@@ -98,12 +105,17 @@ input, button { font-size:1em; padding:0.3em; margin:0.2em; }
     <div class="team-name" id="team1Name"></div>
     <div class="team-score" id="team1Score"></div>
   </div>
+  
+  <div id="matchTimer" style="font-size:2em; color:white; font-weight:bold;">00:00</div>
+
   <div class="team" id="team2ScoreDiv">
     <div class="team-score" id="team2Score"></div>
     <div class="team-name" id="team2Name"></div>
     <img id="team2Logo" src="">
   </div>
 </div>
+
+
 
 <!-- OBS Lineup -->
 <div id="lineupObs">
@@ -138,9 +150,22 @@ input, button { font-size:1em; padding:0.3em; margin:0.2em; }
     <div class="lineup-editor" id="team2LineupEditor"></div>
   </div>
 
+
+   <div>
+    <h3>Timer</h3>
+    <input type="number" id="timerMinutes" placeholder="Minutes" style="width:80px;">
+    <input type="number" id="timerSeconds" placeholder="Seconds" style="width:80px;">
+    <button id="setTimerBtn">Set Timer</button>
+    <button id="startTimerBtn">Start</button>
+    <button id="pauseTimerBtn">Pause</button>
+    <button id="resetTimerBtn">Reset</button>
+   </div>
+
+
+    <hr style="border: 1px solid black; width: 50%;">
+
   <button id="updateBtn">Update Data</button>
 
-  <br />
 
   <div>OBS Score Link: <span id="obsScoreLink"></span></div>
   <div>OBS Lineup Link: <span id="obsLineupLink"></span></div>
@@ -271,6 +296,65 @@ if(mode==='obs'){
   });
   document.getElementById('updateBtn').addEventListener('click', saveData);
 }
+
+
+// Timer logic
+let timerInterval = null;
+
+function formatTime(seconds) {
+  const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+  const s = String(seconds % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function updateTimerDisplay(seconds) {
+  const timerDiv = document.getElementById('matchTimer');
+  if(timerDiv) timerDiv.textContent = formatTime(seconds);
+}
+
+function startTimer() {
+  if(timerInterval) return; // already running
+  timerInterval = setInterval(() => {
+    db.ref(path + '/timer').once('value').then(snap=>{
+      let seconds = snap.val() || 0;
+      seconds++;
+      db.ref(path + '/timer').set(seconds);
+    });
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function resetTimer() {
+  pauseTimer();
+  db.ref(path + '/timer').set(0);
+}
+
+// Editor buttons
+document.getElementById('startTimerBtn').addEventListener('click', startTimer);
+document.getElementById('pauseTimerBtn').addEventListener('click', pauseTimer);
+document.getElementById('resetTimerBtn').addEventListener('click', resetTimer);
+document.getElementById('setTimerBtn').addEventListener('click', ()=>{
+  const minutes = parseInt(document.getElementById('timerMinutes').value) || 0;
+  const seconds = parseInt(document.getElementById('timerSeconds').value) || 0;
+  db.ref(path + '/timer').set(minutes * 60 + seconds);
+});
+
+// OBS mode: update timer display in real-time
+if(mode==='obs'){
+  const timerDiv = document.getElementById('matchTimer');
+  db.ref(path + '/timer').on('value', snap=>{
+    const seconds = snap.val() || 0;
+    if(timerDiv) timerDiv.textContent = formatTime(seconds);
+  });
+}
+
+
+
+
 </script>
 </body>
 </html>
