@@ -1,0 +1,286 @@
+🔥 Wat we gaan maken
+
+Jij opent editor.html → typt tekst en kiest kleur.
+→ De data wordt live opgeslagen in Firebase.
+
+OBS laadt banner.html?mode=obs.
+→ Deze leest de Firebase-data realtime.
+
+Zodra jij in de editor iets wijzigt, past het in OBS direct aan.
+
+⚙️ 1. Firebase instellen
+
+Ga naar 👉 https://console.firebase.google.com
+
+Maak een nieuw project (bijv. obs-banner).
+
+Ga naar Build → Realtime Database → Create Database → kies Start in test mode.
+
+Kopieer daarna je Firebase config:
+
+In je project → ⚙️ Project Settings → “SDK setup and configuration”.
+
+Je krijgt iets als:
+
+const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "obs-banner.firebaseapp.com",
+  databaseURL: "https://obs-banner-default-rtdb.firebaseio.com",
+  projectId: "obs-banner",
+  storageBucket: "obs-banner.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:abcd1234"
+};
+
+💻 2. HTML-code (werkt direct)
+
+Kopieer dit in één bestand (bijv. banner.html):
+Het heeft zowel een Editor-modus als een OBS-modus, met realtime Firebase-sync.
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>OBS Live Banner</title>
+  <style>
+    body, html { margin:0; padding:0; height:100%; font-family:sans-serif; }
+    .center {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      height:100%; gap:1em;
+    }
+    input, button { font-size:1.1em; padding:0.5em; }
+    #preview {
+      width:80%; height:150px; display:flex; justify-content:center; align-items:center;
+      font-size:2em; color:white; border-radius:10px;
+    }
+    #obs {
+      display:flex; justify-content:center; align-items:center; height:100%;
+      color:white; font-size:3em; text-align:center;
+    }
+  </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+</head>
+<body>
+  <div id="editor" class="center" style="display:none;">
+    <h2>🎨 OBS Live Banner Editor</h2>
+    <input id="textInput" type="text" placeholder="Voer tekst in" style="width:60%">
+    <input id="colorInput" type="color" value="#1E90FF">
+    <div id="preview">Voorbeeldtekst</div>
+    <p>Open in OBS: <span id="obsLink"></span></p>
+  </div>
+
+  <div id="obs" style="display:none;">
+    <div id="obsText"></div>
+  </div>
+
+  <script>
+    // 🔥 Vul hier je Firebase-config in:
+    const firebaseConfig = {
+      apiKey: "JOUW_API_KEY",
+      authDomain: "JOUW_PROJECT.firebaseapp.com",
+      databaseURL: "https://JOUW_PROJECT-default-rtdb.firebaseio.com",
+      projectId: "JOUW_PROJECT",
+      storageBucket: "JOUW_PROJECT.appspot.com",
+      messagingSenderId: "JOUW_SENDER_ID",
+      appId: "JOUW_APP_ID"
+    };
+
+    // Firebase starten
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
+    const path = params.get('path') || 'default'; // maakt meerdere banners mogelijk
+
+    if (mode === 'obs') {
+      // OBS-weergave
+      const obsDiv = document.getElementById('obs');
+      obsDiv.style.display = 'flex';
+      const obsText = document.getElementById('obsText');
+
+      const ref = db.ref(path);
+      ref.on('value', snapshot => {
+        const data = snapshot.val() || { text: 'Voorbeeldtekst', color: '#1E90FF' };
+        document.body.style.background = data.color;
+        obsText.textContent = data.text;
+      });
+    } else {
+      // Editor
+      const editor = document.getElementById('editor');
+      editor.style.display = 'flex';
+      const textInput = document.getElementById('textInput');
+      const colorInput = document.getElementById('colorInput');
+      const preview = document.getElementById('preview');
+      const obsLink = document.getElementById('obsLink');
+
+      const ref = db.ref(path);
+
+      function updatePreview() {
+        preview.textContent = textInput.value || 'Voorbeeldtekst';
+        preview.style.backgroundColor = colorInput.value;
+      }
+
+      // Data realtime bijwerken
+      textInput.addEventListener('input', () => {
+        updatePreview();
+        ref.set({ text: textInput.value, color: colorInput.value });
+      });
+      colorInput.addEventListener('input', () => {
+        updatePreview();
+        ref.set({ text: textInput.value, color: colorInput.value });
+      });
+
+      // Luisteren op wijzigingen (voor sync met andere apparaten)
+      ref.on('value', snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          textInput.value = data.text;
+          colorInput.value = data.color;
+          updatePreview();
+        }
+      });
+
+      // OBS-link tonen
+      const url = `${window.location.origin}${window.location.pathname}?mode=obs&path=${encodeURIComponent(path)}`;
+      obsLink.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+    }
+  </script>
+</body>
+</html>
+
+💡 Gebruik
+
+Host het HTML-bestand (bijv. via Netlify, Vercel, of GitHub Pages).
+
+Open in je browser:
+
+https://jouwsite.nl/banner.html
+
+
+→ Dit is de Editor.
+Vul tekst en kleur in — je ziet live de preview.
+
+In OBS voeg je een Browser Source toe met deze URL:
+
+https://jouwsite.nl/banner.html?mode=obs
+
+
+→ Zodra jij in de editor iets typt, verandert het direct in OBS.
+
+✅ Werkt realtime
+✅ Geen refresh nodig
+✅ Gratis via Firebase
+
+Wil je dat ik je even stap-voor-stap help met het Firebase-gedeelte (aanmaken van het project, en waar je precies die config moet plakken)? Dat kan ik stap voor stap uitschrijven.
+
+You said:
+Ik kan de sdk setup and config data niet vinden
+ChatGPT said:
+
+Geen probleem! Ik help je graag stap voor stap om de benodigde Firebase-configuratie te vinden en in te stellen voor je project.
+
+🔧 Firebase-configuratie vinden en instellen
+
+Volg deze stappen om de benodigde configuratie te verkrijgen:
+
+Ga naar de Firebase-console:
+
+Open Firebase Console
+.
+
+Selecteer je project of maak een nieuw project aan.
+
+Voeg een webapp toe:
+
+Klik op het web-icoon (</>) om een nieuwe webapp toe te voegen.
+
+Geef je app een naam (bijvoorbeeld "OBS Banner").
+
+Klik op "Register app".
+
+Kopieer de SDK-configuratie:
+
+Na registratie zie je een configuratieblok dat er ongeveer zo uitziet:
+
+const firebaseConfig = {
+  apiKey: "JOUW_API_KEY",
+  authDomain: "jouw-project-id.firebaseapp.com",
+  databaseURL: "https://jouw-project-id.firebaseio.com",
+  projectId: "jouw-project-id",
+  storageBucket: "jouw-project-id.appspot.com",
+  messagingSenderId: "JOUW_SENDER_ID",
+  appId: "1:JOUW_SENDER_ID:web:JOUW_APP_ID"
+};
+
+
+Let op: De waarde van databaseURL is essentieel voor de verbinding met je Realtime Database. Deze URL heeft meestal de vorm:
+
+https://jouw-project-id.firebaseio.com
+
+
+Gebruik de configuratie in je project:
+
+Voeg de volgende script-tags toe aan je HTML-bestand, net voor de sluitende </body>-tag:
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "JOUW_API_KEY",
+    authDomain: "jouw-project-id.firebaseapp.com",
+    databaseURL: "https://jouw-project-id.firebaseio.com",
+    projectId: "jouw-project-id",
+    storageBucket: "jouw-project-id.appspot.com",
+    messagingSenderId: "JOUW_SENDER_ID",
+    appId: "1:JOUW_SENDER_ID:web:JOUW_APP_ID"
+  };
+
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.database(app);
+</script>
+
+
+Vervang de placeholder-waarden door de werkelijke waarden uit je Firebase-configuratie.
+
+✅ Volgende stappen
+
+Realtime Database inschakelen:
+
+Ga naar de Firebase-console.
+
+Selecteer Realtime Database in het menu aan de linkerzijde.
+
+Klik op "Database maken" en kies "Starten in testmodus" om snel te beginnen.
+
+Klik op "Volgende" en kies een regio voor je database.
+
+Klik op "Gereed".
+
+Beveiligingsregels instellen:
+
+In de Firebase-console, onder Realtime Database, ga naar het tabblad "Regels".
+
+Voor testdoeleinden kun je de volgende regels gebruiken:
+
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null"
+  }
+}
+
+
+Let op: Deze regels beperken de toegang tot geauthenticeerde gebruikers. Voor openbaar gebruik kun je de regels aanpassen naar:
+
+{
+  "rules": {
+    ".read": "true",
+    ".write": "true"
+  }
+}
+
+
+Belangrijk: Pas de beveiligingsregels aan voordat je je app in productie neemt om ongeautoriseerde toegang te voorkomen.
