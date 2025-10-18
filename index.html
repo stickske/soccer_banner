@@ -76,6 +76,15 @@ input, button { font-size:1em; padding:0.3em; margin:0.2em; }
 .lineup-editor { display:flex; flex-direction:column; gap:5px; }
 .lineup-editor .line { display:flex; gap:5px; justify-content:center; }
 .lineup-editor input { width:80px; }
+
+#scoreObs,
+#lineupObs {
+  display: none;
+  height: 0;
+  padding: 0;
+  margin: 0;
+}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
@@ -193,7 +202,12 @@ function createLineupObs(containerId, players, color, formation){
 }
 
 if(mode==='obs'){
-  document.getElementById('scoreObs').style.display='flex';
+//document.getElementById('scoreObs').style.display='flex';
+  const scoreDiv = document.getElementById('scoreObs');
+  scoreDiv.style.display = 'flex';
+  scoreDiv.style.height = 'auto';
+  scoreDiv.style.padding = '10px'; // alleen hier
+
   const t1Name=document.getElementById('team1Name'), t1Logo=document.getElementById('team1Logo'), t1Score=document.getElementById('team1Score'), t1Div=document.getElementById('team1ScoreDiv');
   const t2Name=document.getElementById('team2Name'), t2Logo=document.getElementById('team2Logo'), t2Score=document.getElementById('team2Score'), t2Div=document.getElementById('team2ScoreDiv');
   
@@ -211,6 +225,8 @@ if(mode==='obs'){
   const lineupDiv = document.getElementById('lineupObs');
   lineupDiv.style.display = 'flex';
   lineupDiv.style.backgroundColor = 'green'; // alleen hier groen tonen
+  lineupDiv.style.height = 'auto';
+  lineupDiv.style.padding = '20px'; // alleen hier
 
   db.ref(path).on('value', snap=>{
     const data = snap.val() || {team1:{players:Array(11).fill(''), color:'#1E90FF'}, team2:{players:Array(11).fill(''), color:'#FF0000'}};
