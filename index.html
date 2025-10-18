@@ -68,8 +68,8 @@ html, body { margin:0; padding:0; font-family:sans-serif; }
   display:none;
   flex-direction:column;
   align-items:center;
-  gap:1em;
-  padding:20px;
+  gap:0.5em;
+  padding:0px;
   background:none; /* no green background */
 }
 input, button { font-size:1em; padding:0.3em; margin:0.2em; }
@@ -90,6 +90,11 @@ input, button { font-size:1em; padding:0.3em; margin:0.2em; }
     background-color: black;
     padding: 10px;
     border-radius:10px;
+}
+
+h3{
+    padding: 0px;
+    margin: 0px;
 }
 
 </style>
@@ -127,10 +132,10 @@ input, button { font-size:1em; padding:0.3em; margin:0.2em; }
 <div id="editor">
   <h2>Score + Lineup Editor</h2>
 
-  <p>
-  <a href="https://freebiesupply.com/" target="_blank">Logo search</a>
-  Of via <a href="https://www.google.com/search?q=manchester+city&rlz=1C1CHBF_enBE1133BE1133&oq=man&gs_lcrp=EgZjaHJvbWUqEQgAECMYJxhGGP0BGIAEGIoFMhEIABAjGCcYRhj9ARiABBiKBTIGCAEQRRg5MgwIAhAjGCcYgAQYigUyEwgDEC4YgwEYxwEYsQMY0QMYgAQyDwgEEC4YQxixAxiABBiKBTISCAUQLhhDGIMBGLEDGIAEGIoFMgYIBhBFGDwyBggHEEUYPdIBCDE3NzdqMGo3qAIIsAIB8QVdZpjkc1wtdw&sourceid=chrome&ie=UTF-8#sie=m;/g/11yf4m_gqn;2;/m/02_tc;dt;fp;1;;;" target="_blank">Google match</a> en logo link url via rechts klik/copy image adress
-  </p>
+  <div>OBS Score Link: <span id="obsScoreLink"></span></div>
+  <div>OBS Lineup Link: <span id="obsLineupLink"></span></div>
+
+    <br />
 
   <div>
     <h3>Team 1</h3>
@@ -141,6 +146,8 @@ input, button { font-size:1em; padding:0.3em; margin:0.2em; }
     <div class="lineup-editor" id="team1LineupEditor"></div>
   </div>
 
+<br />
+
   <div>
     <h3>Team 2</h3>
     <input id="team2NameInput" placeholder="Team 2 Naam">
@@ -149,6 +156,8 @@ input, button { font-size:1em; padding:0.3em; margin:0.2em; }
     <input type="color" id="team2ColorInput" value="#FF0000">
     <div class="lineup-editor" id="team2LineupEditor"></div>
   </div>
+
+  <br />
 
 
    <div>
@@ -161,16 +170,18 @@ input, button { font-size:1em; padding:0.3em; margin:0.2em; }
     <button id="resetTimerBtn">Reset</button>
    </div>
 
+   <br />
 
-    <hr style="border: 1px solid black; width: 50%;">
+
+  <hr style="border: 1px solid black; width: 50%;">
 
   <button id="updateBtn">Update Data</button>
 
 
-  <div>OBS Score Link: <span id="obsScoreLink"></span></div>
-  <div>OBS Lineup Link: <span id="obsLineupLink"></span></div>
-
-  <br />
+    <p>
+  <a href="https://freebiesupply.com/" target="_blank">Logo search</a>
+  Of via <a href="https://www.google.com/search?q=manchester+city&rlz=1C1CHBF_enBE1133BE1133&oq=man&gs_lcrp=EgZjaHJvbWUqEQgAECMYJxhGGP0BGIAEGIoFMhEIABAjGCcYRhj9ARiABBiKBTIGCAEQRRg5MgwIAhAjGCcYgAQYigUyEwgDEC4YgwEYxwEYsQMY0QMYgAQyDwgEEC4YQxixAxiABBiKBTISCAUQLhhDGIMBGLEDGIAEGIoFMgYIBhBFGDwyBggHEEUYPdIBCDE3NzdqMGo3qAIIsAIB8QVdZpjkc1wtdw&sourceid=chrome&ie=UTF-8#sie=m;/g/11yf4m_gqn;2;/m/02_tc;dt;fp;1;;;" target="_blank">Google match</a> en logo link url via rechts klik/copy image adress
+  </p>
 
 </div>
 
