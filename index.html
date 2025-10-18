@@ -146,7 +146,9 @@ h3{
     <div class="lineup-editor" id="team1LineupEditor"></div>
   </div>
 
-<br />
+
+<button id="swapTeamsBtn">Swap Teams</button>
+
 
   <div>
     <h3>Team 2</h3>
@@ -307,6 +309,59 @@ if(mode==='obs'){
   });
   document.getElementById('updateBtn').addEventListener('click', saveData);
 }
+
+
+
+
+
+function swapTeams() {
+  // Vraag de gebruiker of hij zeker is
+  const confirmSwap = confirm("Weet je zeker dat je de teams wilt wisselen?");
+  if (!confirmSwap) return; // stop als de gebruiker op 'Cancel' klikt
+
+  db.ref(path).once('value').then(snap => {
+    const data = snap.val();
+    if(!data) return;
+
+    // Swap team data
+    const tempTeam = {...data.team1};
+    data.team1 = {...data.team2};
+    data.team2 = {...tempTeam};
+
+    // Verticaal omkeren van spelers
+    data.team1.players = data.team1.players.slice().reverse();
+    data.team2.players = data.team2.players.slice().reverse();
+
+    // Save back to Firebase
+    db.ref(path).set(data);
+
+    // Update editor inputs direct
+    const t1Name = document.getElementById('team1NameInput'),
+          t1Logo = document.getElementById('team1LogoInput'),
+          t1Score = document.getElementById('team1ScoreInput'),
+          t1Color = document.getElementById('team1ColorInput');
+
+    const t2Name = document.getElementById('team2NameInput'),
+          t2Logo = document.getElementById('team2LogoInput'),
+          t2Score = document.getElementById('team2ScoreInput'),
+          t2Color = document.getElementById('team2ColorInput');
+
+    t1Name.value = data.team1.name; t1Logo.value = data.team1.logo; t1Score.value = data.team1.score; t1Color.value = data.team1.color;
+    t2Name.value = data.team2.name; t2Logo.value = data.team2.logo; t2Score.value = data.team2.score; t2Color.value = data.team2.color;
+
+    createLineupEditor('team1LineupEditor', data.team1.players, topFormation);
+    createLineupEditor('team2LineupEditor', data.team2.players, bottomFormation);
+  });
+}
+
+// Bind button
+document.getElementById('swapTeamsBtn').addEventListener('click', swapTeams);
+
+
+
+
+
+
 
 
 // Timer logic
