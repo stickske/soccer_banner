@@ -2,238 +2,257 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<title>OBS Live Football Score Banner</title>
+<title>Football Score + Lineup Editor</title>
 <style>
-  html, body { margin:0; padding:0; font-family:sans-serif; height:100%; }
-  body { display:flex; justify-content:flex-start; align-items:flex-start; padding-top:10px; }
+html, body { margin:0; padding:0; font-family:sans-serif; }
 
-  .container {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    width:95%;
-    max-height:350px;
-    border-radius:10px;
-    overflow:hidden;
-    font-weight:bold;
-    color:white;
-    font-size:2em;
-    padding:0.5em;
-    box-sizing:border-box;
-  }
+/* OBS Score */
+#scoreObs {
+  display:none;
+  width:95%;
+  max-height:350px;
+  font-weight:bold;
+  color:white;
+  font-size:2em;
+  padding:10px;
+  box-sizing:border-box;
+  display:flex;
+  justify-content:flex-start;
+  align-items:flex-start;
+  gap:150px; /* space between teams */
+}
+.team {
+  display:flex;
+  align-items:flex-start;
+  gap:0.7em;
+  padding:0.5em;
+  border-radius:10px;
+}
+.team img { max-height:100px; max-width:100px; }
+.team-name { min-width:120px; text-align:center; }
+.team-score { font-size:3em; -webkit-text-stroke: 2px black; text-align:center; }
 
-  .team {
-    display:flex;
-    align-items:center;
-    gap:0.7em;
-    padding:0.5em;
-    border-radius:10px;
-  }
+/* OBS Lineup */
+#lineupObs {
+  display:none;       /* standaard niet zichtbaar */
+  color:white;
+  width:100%;
+  padding:20px;
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:30px;
+  font-weight:bold;
+}
 
-  .team img { max-height:100px; max-width:100px; }
-  .team-name { min-width:140px; text-align:center; }
-  .team-score { font-size:3em; -webkit-text-stroke: 2px black; text-align:center; }
+.lineup {
+  display:flex;
+  flex-direction:column;
+  gap:15px; /* vertical spacing between lines */
+}
+.line {
+  display:flex;
+  gap:15px;
+  justify-content:center;
+}
+.player {
+  padding:5px 10px;
+  border-radius:5px;
+  text-align:center;
+  min-width:60px;
+}
 
-  /* Editor */
-  #editor {
-    display:none;
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:1em;
-  }
-
-  input, button { font-size:1em; padding:0.3em; margin:0.2em; }
+/* Editor */
+#editor {
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  gap:1em;
+  padding:20px;
+  background:none; /* no green background */
+}
+input, button { font-size:1em; padding:0.3em; margin:0.2em; }
+.lineup-editor { display:flex; flex-direction:column; gap:5px; }
+.lineup-editor .line { display:flex; gap:5px; justify-content:center; }
+.lineup-editor input { width:80px; }
 </style>
-
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
 </head>
 <body>
 
-<!-- OBS Banner -->
-<div id="obs" style="display:none;">
-  <div class="container" id="scoreContainer">
-    <div class="team" id="team1">
-      <img id="team1Logo" src="">
-      <div class="team-name" id="team1Name"></div>
-      <div class="team-score" id="team1Score"></div>
-    </div>
-    <div style="width:100px;"></div>
-    <div class="team" id="team2">
-      <div class="team-score" id="team2Score"></div>
-      <div class="team-name" id="team2Name"></div>
-      <img id="team2Logo" src="">
-    </div>
+<!-- OBS Score -->
+<div id="scoreObs">
+  <div class="team" id="team1ScoreDiv">
+    <img id="team1Logo" src="">
+    <div class="team-name" id="team1Name"></div>
+    <div class="team-score" id="team1Score"></div>
   </div>
+  <div class="team" id="team2ScoreDiv">
+    <div class="team-score" id="team2Score"></div>
+    <div class="team-name" id="team2Name"></div>
+    <img id="team2Logo" src="">
+  </div>
+</div>
+
+<!-- OBS Lineup -->
+<div id="lineupObs">
+  <div id="team1LineupObs" class="lineup"></div>
+  <div id="team2LineupObs" class="lineup"></div>
 </div>
 
 <!-- Editor -->
 <div id="editor">
-  <h2>Live Score Editor</h2>
+  <h2>Score + Lineup Editor</h2>
+
+  <p>
+  <a href="https://freebiesupply.com/" target="_blank">Logo search</a>
+  Of via <a href="https://www.google.com/search?q=manchester+city&rlz=1C1CHBF_enBE1133BE1133&oq=man&gs_lcrp=EgZjaHJvbWUqEQgAECMYJxhGGP0BGIAEGIoFMhEIABAjGCcYRhj9ARiABBiKBTIGCAEQRRg5MgwIAhAjGCcYgAQYigUyEwgDEC4YgwEYxwEYsQMY0QMYgAQyDwgEEC4YQxixAxiABBiKBTISCAUQLhhDGIMBGLEDGIAEGIoFMgYIBhBFGDwyBggHEEUYPdIBCDE3NzdqMGo3qAIIsAIB8QVdZpjkc1wtdw&sourceid=chrome&ie=UTF-8#sie=m;/g/11yf4m_gqn;2;/m/02_tc;dt;fp;1;;;" target="_blank">Google match</a> en logo link url via rechts klik/copy image adress
+  </p>
+
   <div>
     <h3>Team 1</h3>
     <input id="team1NameInput" placeholder="Team 1 Naam">
     <input id="team1LogoInput" placeholder="Team 1 Logo URL">
     <input type="number" id="team1ScoreInput" placeholder="Score" min="0">
     <input type="color" id="team1ColorInput" value="#1E90FF">
+    <div class="lineup-editor" id="team1LineupEditor"></div>
   </div>
+
   <div>
     <h3>Team 2</h3>
     <input id="team2NameInput" placeholder="Team 2 Naam">
     <input id="team2LogoInput" placeholder="Team 2 Logo URL">
     <input type="number" id="team2ScoreInput" placeholder="Score" min="0">
     <input type="color" id="team2ColorInput" value="#FF0000">
+    <div class="lineup-editor" id="team2LineupEditor"></div>
   </div>
-  <button id="updateBtn">Update Score</button>
-  <p>OBS link: <span id="obsLink"></span></p>
+
+  <button id="updateBtn">Update Data</button>
+
+  <br />
+
+  <div>OBS Score Link: <span id="obsScoreLink"></span></div>
+  <div>OBS Lineup Link: <span id="obsLineupLink"></span></div>
+
+  <br />
+
 </div>
 
 <script>
+// Firebase config
 const params = new URLSearchParams(window.location.search);
 const mode = params.get('mode') || 'editor';
-
 const firebaseConfig = {
   apiKey: "AIzaSyASMzmFDtKrGm0Ff4Tu2vBAOty3usTstrU",
   authDomain: "soccer-banner-2d394.firebaseapp.com",
   databaseURL: "https://soccer-banner-2d394-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "soccer-banner-2d394",
-  storageBucket: "soccer-banner-2d394.firebasestorage.app",
+  storageBucket: "soccer-banner-2d394.appspot.com",
   messagingSenderId: "836525547963",
   appId: "1:836525547963:web:2ab97e7731d339d36a249e",
   measurementId: "G-32J6V0FSNS"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const path = 'footballScore';
 
-// OBS mode (public)
-if(mode === 'obs'){
-  document.getElementById('obs').style.display='flex';
+// Formations
+const topFormation = [[0],[1,2,3,4],[5,6,7],[8,9,10]];
+const bottomFormation = [[0,1,2],[3,4,5],[6,7,8,9],[10]];
 
-  const t1Name = document.getElementById('team1Name');
-  const t1Logo = document.getElementById('team1Logo');
-  const t1Score = document.getElementById('team1Score');
-  const t1Div = document.getElementById('team1');
-
-  const t2Name = document.getElementById('team2Name');
-  const t2Logo = document.getElementById('team2Logo');
-  const t2Score = document.getElementById('team2Score');
-  const t2Div = document.getElementById('team2');
-
-  const ref = db.ref(path);
-
-  ref.on('value', snapshot=>{
-    const data = snapshot.val() || {
-      team1:{name:'Team 1', logo:'', score:0, color:'#1E90FF'},
-      team2:{name:'Team 2', logo:'', score:0, color:'#FF0000'}
-    };
-    t1Name.textContent = data.team1.name;
-    t1Logo.src = data.team1.logo;
-    t1Score.textContent = data.team1.score;
-    t1Div.style.backgroundColor = data.team1.color;
-
-    t2Name.textContent = data.team2.name;
-    t2Logo.src = data.team2.logo;
-    t2Score.textContent = data.team2.score;
-    t2Div.style.backgroundColor = data.team2.color;
-
-    localStorage.setItem(`banner_${path}`, JSON.stringify(data));
+function createLineupEditor(containerId, players, formation){
+  const container = document.getElementById(containerId);
+  container.innerHTML='';
+  players = players || Array(11).fill('');
+  formation.forEach(line=>{
+    const lineDiv=document.createElement('div'); lineDiv.classList.add('line');
+    line.forEach(i=>{
+      const input=document.createElement('input');
+      input.value=players[i]||''; input.dataset.index=i;
+      lineDiv.appendChild(input);
+    });
+    container.appendChild(lineDiv);
   });
-
-} else {
-  // Editor mode: password check
-  const PASSWORD = "arsenal"; // 🔑 set your password here
-  let storedPass = localStorage.getItem('editorPass');
-
-  function askPassword(){
-    let pass = prompt("Enter password to access the editor:");
-    if(pass === PASSWORD){
-      localStorage.setItem('editorPass', pass);
-      document.getElementById('editor').style.display='flex';
-      setupEditor();
-    } else {
-      alert("Wrong password! Try again.");
-      askPassword();
-    }
-  }
-
-  if(storedPass === PASSWORD){
-    document.getElementById('editor').style.display='flex';
-    setupEditor();
-  } else {
-    askPassword();
-  }
 }
 
-// Function to initialize editor functionality
-function setupEditor(){
-  const t1Name = document.getElementById('team1NameInput');
-  const t1Logo = document.getElementById('team1LogoInput');
-  const t1Score = document.getElementById('team1ScoreInput');
-  const t1Color = document.getElementById('team1ColorInput');
+function createLineupObs(containerId, players, color, formation){
+  const container = document.getElementById(containerId);
+  container.innerHTML='';
+  players = players || Array(11).fill('');
+  formation.forEach(line=>{
+    const lineDiv=document.createElement('div'); lineDiv.classList.add('line');
+    line.forEach(i=>{
+      const div=document.createElement('div');
+      div.className='player'; div.textContent=players[i]||''; div.style.backgroundColor=color;
+      lineDiv.appendChild(div);
+    });
+    container.appendChild(lineDiv);
+  });
+}
 
-  const t2Name = document.getElementById('team2NameInput');
-  const t2Logo = document.getElementById('team2LogoInput');
-  const t2Score = document.getElementById('team2ScoreInput');
-  const t2Color = document.getElementById('team2ColorInput');
+if(mode==='obs'){
+  document.getElementById('scoreObs').style.display='flex';
+  const t1Name=document.getElementById('team1Name'), t1Logo=document.getElementById('team1Logo'), t1Score=document.getElementById('team1Score'), t1Div=document.getElementById('team1ScoreDiv');
+  const t2Name=document.getElementById('team2Name'), t2Logo=document.getElementById('team2Logo'), t2Score=document.getElementById('team2Score'), t2Div=document.getElementById('team2ScoreDiv');
+  
+  db.ref(path).on('value', snap=>{
+    const data = snap.val() || {team1:{name:'Team 1', logo:'', score:0, color:'#1E90FF'}, team2:{name:'Team 2', logo:'', score:0, color:'#FF0000'}};
+    t1Name.textContent=data.team1.name; t1Logo.src=data.team1.logo; t1Score.textContent=data.team1.score;
+    t2Name.textContent=data.team2.name; t2Logo.src=data.team2.logo; t2Score.textContent=data.team2.score;
 
-  const obsLink = document.getElementById('obsLink');
-  const url = `${window.location.origin}${window.location.pathname}?mode=obs`;
-  obsLink.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+    // Set team colors as background on OBS Score page
+    t1Div.style.backgroundColor = data.team1.color;
+    t2Div.style.backgroundColor = data.team2.color;
+  });
+  
+}else if(mode==='obsLineup'){
+  const lineupDiv = document.getElementById('lineupObs');
+  lineupDiv.style.display = 'flex';
+  lineupDiv.style.backgroundColor = 'green'; // alleen hier groen tonen
 
-  db.ref(path).once('value').then(snapshot=>{
-    const data = snapshot.val();
-    if(data){
-      t1Name.value = data.team1.name;
-      t1Logo.value = data.team1.logo;
-      t1Score.value = data.team1.score;
-      t1Color.value = data.team1.color;
+  db.ref(path).on('value', snap=>{
+    const data = snap.val() || {team1:{players:Array(11).fill(''), color:'#1E90FF'}, team2:{players:Array(11).fill(''), color:'#FF0000'}};
+    createLineupObs('team1LineupObs', data.team1.players, data.team1.color, topFormation);
+    createLineupObs('team2LineupObs', data.team2.players, data.team2.color, bottomFormation);
+  });
 
-      t2Name.value = data.team2.name;
-      t2Logo.value = data.team2.logo;
-      t2Score.value = data.team2.score;
-      t2Color.value = data.team2.color;
-    } else {
-      const localData = localStorage.getItem(`banner_${path}`);
-      if(localData){
-        const data = JSON.parse(localData);
-        t1Name.value = data.team1.name;
-        t1Logo.value = data.team1.logo;
-        t1Score.value = data.team1.score;
-        t1Color.value = data.team1.color;
+}else{
+  document.getElementById('editor').style.display='flex';
+  const t1Name=document.getElementById('team1NameInput'), t1Logo=document.getElementById('team1LogoInput'), t1Score=document.getElementById('team1ScoreInput'), t1Color=document.getElementById('team1ColorInput'), t1Lineup=document.getElementById('team1LineupEditor');
+  const t2Name=document.getElementById('team2NameInput'), t2Logo=document.getElementById('team2LogoInput'), t2Score=document.getElementById('team2ScoreInput'), t2Color=document.getElementById('team2ColorInput'), t2Lineup=document.getElementById('team2LineupEditor');
+  const obsScoreLink=document.getElementById('obsScoreLink'), obsLineupLink=document.getElementById('obsLineupLink');
+  const urlScore=`${window.location.origin}${window.location.pathname}?mode=obs`;
+  const urlLineup=`${window.location.origin}${window.location.pathname}?mode=obsLineup`;
+  obsScoreLink.innerHTML=`<a href="${urlScore}" target="_blank">${urlScore}</a>`;
+  obsLineupLink.innerHTML=`<a href="${urlLineup}" target="_blank">${urlLineup}</a>`;
 
-        t2Name.value = data.team2.name;
-        t2Logo.value = data.team2.logo;
-        t2Score.value = data.team2.score;
-        t2Color.value = data.team2.color;
-      }
-    }
+  db.ref(path).once('value').then(snap=>{
+    const data=snap.val()||{
+      team1:{name:'Team 1', logo:'', score:0, color:'#1E90FF', players:Array(11).fill('')},
+      team2:{name:'Team 2', logo:'', score:0, color:'#FF0000', players:Array(11).fill('')}
+    };
+    t1Name.value=data.team1.name; t1Logo.value=data.team1.logo; t1Score.value=data.team1.score; t1Color.value=data.team1.color;
+    t2Name.value=data.team2.name; t2Logo.value=data.team2.logo; t2Score.value=data.team2.score; t2Color.value=data.team2.color;
+    createLineupEditor('team1LineupEditor', data.team1.players, topFormation);
+    createLineupEditor('team2LineupEditor', data.team2.players, bottomFormation);
   });
 
   function saveData(){
-    const data = {
-      team1:{name:t1Name.value, logo:t1Logo.value, score:Number(t1Score.value), color:t1Color.value},
-      team2:{name:t2Name.value, logo:t2Logo.value, score:Number(t2Score.value), color:t2Color.value}
-    };
-    db.ref(path).set(data);
-    localStorage.setItem(`banner_${path}`, JSON.stringify(data));
+    const t1Players=Array.from(t1Lineup.querySelectorAll('input')).map(i=>i.value);
+    const t2Players=Array.from(t2Lineup.querySelectorAll('input')).map(i=>i.value);
+    const data={team1:{name:t1Name.value, logo:t1Logo.value, score:Number(t1Score.value), color:t1Color.value, players:t1Players}, team2:{name:t2Name.value, logo:t2Logo.value, score:Number(t2Score.value), color:t2Color.value, players:t2Players}};
+    db.ref(path).set(data); localStorage.setItem(`banner_${path}`, JSON.stringify(data));
   }
 
-  const inputs = [t1Name,t1Logo,t1Score,t1Color,t2Name,t2Logo,t2Score,t2Color];
-  inputs.forEach(input=>{
+  const inputs=[t1Name,t1Logo,t1Score,t1Color,t2Name,t2Logo,t2Score,t2Color];
+  const lineupInputs=()=>[...t1Lineup.querySelectorAll('input'),...t2Lineup.querySelectorAll('input')];
+  inputs.concat(lineupInputs()).forEach(input=>{
     input.addEventListener('blur', saveData);
-    input.addEventListener('keydown', e=>{
-      if(e.key === 'Enter') saveData();
-    });
+    input.addEventListener('keydown', e=>{if(e.key==='Enter') saveData();});
     input.addEventListener('input', saveData);
   });
-
   document.getElementById('updateBtn').addEventListener('click', saveData);
 }
 </script>
