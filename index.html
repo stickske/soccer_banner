@@ -5,8 +5,6 @@
 <title>OBS Live Football Score Banner</title>
 <style>
   html, body { margin:0; padding:0; font-family:sans-serif; height:100%; }
-  
-  /* OBS banner top-aligned */
   body { display:flex; justify-content:flex-start; align-items:flex-start; padding-top:10px; }
 
   .container {
@@ -33,7 +31,7 @@
   }
 
   .team img { max-height:100px; max-width:100px; }
-  .team-name { min-width:120px; text-align:center; }
+  .team-name { min-width:140px; text-align:center; }
   .team-score { font-size:3em; -webkit-text-stroke: 2px black; text-align:center; }
 
   /* Editor */
@@ -65,7 +63,7 @@
       <div class="team-name" id="team1Name"></div>
       <div class="team-score" id="team1Score"></div>
     </div>
-    <div style="width:100px;"></div> <!-- Increased space between teams -->
+    <div style="width:100px;"></div>
     <div class="team" id="team2">
       <div class="team-score" id="team2Score"></div>
       <div class="team-name" id="team2Name"></div>
@@ -114,6 +112,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const path = 'footballScore';
 
+// OBS mode (public)
 if(mode === 'obs'){
   document.getElementById('obs').style.display='flex';
 
@@ -134,7 +133,6 @@ if(mode === 'obs'){
       team1:{name:'Team 1', logo:'', score:0, color:'#1E90FF'},
       team2:{name:'Team 2', logo:'', score:0, color:'#FF0000'}
     };
-
     t1Name.textContent = data.team1.name;
     t1Logo.src = data.team1.logo;
     t1Score.textContent = data.team1.score;
@@ -148,23 +146,33 @@ if(mode === 'obs'){
     localStorage.setItem(`banner_${path}`, JSON.stringify(data));
   });
 
-  const localData = localStorage.getItem(`banner_${path}`);
-  if(localData){
-    const data = JSON.parse(localData);
-    t1Name.textContent = data.team1.name;
-    t1Logo.src = data.team1.logo;
-    t1Score.textContent = data.team1.score;
-    t1Div.style.backgroundColor = data.team1.color;
+} else {
+  // Editor mode: password check
+  const PASSWORD = "arsenal"; // 🔑 set your password here
+  let storedPass = localStorage.getItem('editorPass');
 
-    t2Name.textContent = data.team2.name;
-    t2Logo.src = data.team2.logo;
-    t2Score.textContent = data.team2.score;
-    t2Div.style.backgroundColor = data.team2.color;
+  function askPassword(){
+    let pass = prompt("Enter password to access the editor:");
+    if(pass === PASSWORD){
+      localStorage.setItem('editorPass', pass);
+      document.getElementById('editor').style.display='flex';
+      setupEditor();
+    } else {
+      alert("Wrong password! Try again.");
+      askPassword();
+    }
   }
 
-}else{
-  document.getElementById('editor').style.display='flex';
+  if(storedPass === PASSWORD){
+    document.getElementById('editor').style.display='flex';
+    setupEditor();
+  } else {
+    askPassword();
+  }
+}
 
+// Function to initialize editor functionality
+function setupEditor(){
   const t1Name = document.getElementById('team1NameInput');
   const t1Logo = document.getElementById('team1LogoInput');
   const t1Score = document.getElementById('team1ScoreInput');
@@ -223,7 +231,7 @@ if(mode === 'obs'){
     input.addEventListener('keydown', e=>{
       if(e.key === 'Enter') saveData();
     });
-    input.addEventListener('input', saveData); // also for spinner/color changes
+    input.addEventListener('input', saveData);
   });
 
   document.getElementById('updateBtn').addEventListener('click', saveData);
